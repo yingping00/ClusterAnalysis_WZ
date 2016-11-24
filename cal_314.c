@@ -15,26 +15,27 @@ void main()
 {
   int i, nthreads;
   double pi;
-  double sum[NUM_THREADS];
+  double sum;
   double STEP = 1.00/(double)NUM_STEP;
   omp_set_num_threads(NUM_THREADS);
-  #pragma omp parallel
-  {
-    int i, id, nthrds;
+
+
+    int id, nthrds;
     double x;
     id = omp_get_num_threads();
     nthrds = omp_get_num_threads();
     if (id == 0) nthreads = nthrds;
-    for (i=id, sum[id]=0.0; i< NUM_STEP; i=i+nthrds)
+  #pragma omp parallel for reduction (+:sum)
+    for (i=0; i< NUM_STEP; i++)
     {
           x = (i+0.5)*STEP;
-          sum[id] += 4.0/(1.0+x*x);
+          sum += 4.0/(1.0+x*x);
 
     }
-  }
-  for (i=0, pi = 0.0; i < nthreads; i++){
-     pi += sum[i]*STEP;
-      }
+
+
+     pi = sum *STEP;
+
 printf("the simulated psi is %f\n", pi);
 
 
