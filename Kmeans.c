@@ -231,20 +231,17 @@ int main(int argc, char *argv[]){
     for(int i=1; i<num_points+1; i++){
         fprintf(output_file,"\n%d,", i);
         for(int j=0; j<num_col; j++){
-            fprintf(output_file, "%.3f,",mtrx[i][j]);
+            fprintf(output_file, "%.3f,",mtrx[i-1][j]);
         }
     }
-    printf("aa\n");
-    fflush(stdout);
 
-
-    /*for (int i=0; i<NUM_CLUSTERS; i++)
+    for (int i=0; i<NUM_CLUSTERS; i++)
     {
         for (int j=0; j<num_dim; j++)
         {printf("%.3f\t",cen_mtrxnew[i][j]);}
         printf("\n");
     }
-    */
+
 
     //TODO:  (1)close file handle (2)free pointer
 
