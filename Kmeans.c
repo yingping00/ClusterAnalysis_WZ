@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 
 #define NUM_CLUSTERS 6
 #define MAX_ITERATIONS 100
@@ -46,29 +47,29 @@ int* randsamp(int x, int min, int max)
     }
 
     return a_clus;
-
 }
 
 // calculate new centrriods
 //CHANGED: Reduce redundancy,increase readibility: x1,y1->num_points_in_cluster.
 void cal_centriods(int num_points,int num_dim,  float **mtrx, float **cen_mtrx){
-
-    float x = 0;
-    float y = 0;
-    int num_points_in_cluster = 0;
+    float x;
+    float y;
+    int num_points_in_cluster;
     for(int jj = 1; jj < NUM_CLUSTERS +1; jj++){
+      num_points_in_cluster = 0;
+      x = 0;
+      y = 0;
         for(int ii = 0; ii < num_points; ii++){
             if (mtrx[ii][0]== jj){
                 //mtrx[ii][num_dim+jj]
                 num_points_in_cluster++;
                 x += mtrx[ii][1];
                 y += mtrx[ii][2];
-                x = x/num_points_in_cluster;
-                y = y/num_points_in_cluster;
-                cen_mtrx[jj-1][0]=x; //FIXME:What is this about? Can the above two lines be moves out of the inner loop?
-                cen_mtrx[jj-1][1]=y;
             }
+            cen_mtrx[jj-1][0] = x/num_points_in_cluster;
+            cen_mtrx[jj-1][1] = y/num_points_in_cluster;
         }
+
     }
 }
 
@@ -101,7 +102,6 @@ int compareArrays(float **cen_mtrx, float **cen_mtrxnew, int row, int column) {
 // after the calculation, the mtrx is updated with each row's last MAX_CLUSTER columns are the distance to the centriods
 // for node number < number of points keep calculating
 // a is the centriods one dimentional matrix
-//CHANGED: improve readability by assigning repeated expression to a variable.
 
 void cal_dis (int num_points, int num_col, int num_dim, float **mtrx,  float **cen_mtrx ){
     // assign the new centriods matrix
@@ -132,7 +132,7 @@ void assign_cen(int num_points,int num_dim,  float **mtrx) {
                 min = mtrx[ii][num_dim+1+jj];
             }
         }
-        //printf(" %.3f \n", min);
+      //  printf(" %.3f \n", min);
         for (int k = 0; k < NUM_CLUSTERS; k++){
             if (mtrx[ii][num_dim+1+k] == min)
             {
@@ -157,7 +157,11 @@ int main(int argc, char *argv[]){
 
     int num_dim = atoi(argv[1]), num_col = num_dim+1+NUM_CLUSTERS, num_points = atoi(argv[2]);
     FILE *data_file = fopen(argv[3],"r");
-    FILE *output_file = fopen(argv[4],"w");
+    char filename[30];
+    strcpy(filename, argv[4]);
+    strcat(filename,".csv");
+    printf("%s",filename);
+    FILE *output_file = fopen(filename,"w");
 
     float **mtrx = (float**)malloc(sizeof(float*)*num_points);
     for (int i=0; i<num_points;i++){
@@ -218,6 +222,9 @@ int main(int argc, char *argv[]){
         num_int ++;
     }
 
+        printf("aa");
+        fflush(stdout);
+
     fprintf(output_file, "POINT_NUM,ASSIGNED_CLUSTER,XCOORD,YCOORD,");
     for(int i=1; i<NUM_CLUSTERS+1; i++){
       fprintf(output_file,"DIST_CLUSTER%d,",i);
@@ -230,12 +237,13 @@ int main(int argc, char *argv[]){
         }
     }
 
-    for (int i=0; i<NUM_CLUSTERS; i++)
+    /*for (int i=0; i<NUM_CLUSTERS; i++)
     {
         for (int j=0; j<num_dim; j++)
         {printf("%.3f\t",cen_mtrxnew[i][j]);}
         printf("\n");
     }
+    */
 
     //TODO:  (1)close file handle (2)free pointer
 
