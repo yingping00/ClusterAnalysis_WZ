@@ -160,7 +160,6 @@ int main(int argc, char *argv[]){
     char filename[30];
     strcpy(filename, argv[4]);
     strcat(filename,".csv");
-    printf("%s",filename);
     FILE *output_file = fopen(filename,"w");
 
     float **mtrx = (float**)malloc(sizeof(float*)*num_points);
@@ -222,10 +221,9 @@ int main(int argc, char *argv[]){
         num_int ++;
     }
 
-        printf("aa");
-        fflush(stdout);
 
     fprintf(output_file, "POINT_NUM,ASSIGNED_CLUSTER,XCOORD,YCOORD,");
+
     for(int i=1; i<NUM_CLUSTERS+1; i++){
       fprintf(output_file,"DIST_CLUSTER%d,",i);
     }
@@ -233,9 +231,12 @@ int main(int argc, char *argv[]){
     for(int i=1; i<num_points+1; i++){
         fprintf(output_file,"\n%d,", i);
         for(int j=0; j<num_col; j++){
-            fprintf(output_file, "%.3f,",mtrx[i][j] );
+            fprintf(output_file, "%.3f,",mtrx[i][j]);
         }
     }
+    printf("aa\n");
+    fflush(stdout);
+
 
     /*for (int i=0; i<NUM_CLUSTERS; i++)
     {
