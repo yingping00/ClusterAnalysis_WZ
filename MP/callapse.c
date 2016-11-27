@@ -1,4 +1,5 @@
 // time for the callpse section is 0.001
+// this callaspe funciton is wrong!!!! need private variable to be added
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,27 +8,30 @@
 
 void main ()
 {
-	double A[100][1000];
-	printf("I'm here111");
-	double Result =0.0;
-	for(int i=0;i<100;i++)
-		{		for(int j=0;j<1000;j++)
+	int A[10][100];
+	int Result=0;
+	for(int i=0;i<10;i++)
+		{		for(int j=0;j<100;j++)
 			{
-			  A[i][j] = 2.89;
+			  A[i][j] = 1;
 			}
 		}
 
+		int i, j;
 		double start = omp_get_wtime();
 		omp_set_num_threads(NUM_THREADS);
-		#pragma omp parallel for collapse(2)
-		for(int i=0;i<100;i++)
-			{
-				for(int j=0;j<1000;j++)
+		// if callpse is not used, 0.001, but when callaspe is used, then the time is 0.0000
+		#pragma omp parallel for collapse(2) reduction(+: Result) private (j)
+			for(i=0;i<10;i++)
 				{
-					Result += A[i][j];
+					for(j=0;j<100;j++)
+					{
+						Result += A[i][j];
+					//	printf("%d", Result);
+					}
 				}
-			}
-			printf("result = %f\n", Result);
+
+			printf("result = %d\n", Result);
 			printf("Time for this omp process is : \t %f \n", omp_get_wtime()-start);
 
 	}

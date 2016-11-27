@@ -13,14 +13,14 @@ void read_data(FILE *data_file, int num_points, int num_col, float **mtrx){
 
 	for (int i=0; i<num_points; i++){          //start reading data points to array. Point i stores in mtrx[i-1][];
 		fscanf(data_file,"%*f",	&mtrx[i][0]);   //mtrx[i-1][0] defines the cluster center it is assigned to; mtrx[i-1][1] is its first-dimension coordinate,and so forth.
-		mtrx[i][0]=0;					       //initialize the cluster center that each data point is assigned to as 0. 
+		mtrx[i][0]=0;					       //initialize the cluster center that each data point is assigned to as 0.
 		for (int j=1;j<num_col; j++){
 			fscanf(data_file,"%f", &mtrx[i][j]);
 		}
-		fscanf(data_file,"\n",NULL);    
-		
+		fscanf(data_file,"\n",NULL);
+
 	}
-} 
+}
 
 //To run: a.exe 2 20 Atlanta.exe output.exe
 int main(int argc, char *argv[]){
@@ -39,10 +39,10 @@ int main(int argc, char *argv[]){
 	float **mtrx = (float**)malloc(sizeof(float*)*num_points);
 	for (int i=0; i<num_points;i++){
 		mtrx[i] = (float*)malloc(sizeof(float)*num_col);
-	} 
+	}
 
 	read_data(data_file, num_points, num_col, mtrx);
-	
+
 	//Just for checking
 	for (int i=0; i<num_points; i++){
 		for (int j=0; j<num_col; j++){

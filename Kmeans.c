@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
+#include <omp.h>
 
 #define NUM_CLUSTERS 6
 #define MAX_ITERATIONS 100
@@ -30,7 +31,7 @@ void read_data(FILE *data_file, int num_points, int num_col, int  num_dim, float
 
 // random number generation fcuntion
 int* randsamp(int x, int min, int max)
-{
+  {
     int r,i=x,*a_clus;
 
     a_clus=malloc(x*sizeof(int));
@@ -47,7 +48,7 @@ int* randsamp(int x, int min, int max)
     }
 
     return a_clus;
-}
+  }
 
 // calculate new centrriods
 //CHANGED: Reduce redundancy,increase readibility: x1,y1->num_points_in_cluster.
@@ -207,7 +208,7 @@ int main(int argc, char *argv[]){
     cal_centriods(num_points,num_dim,  mtrx, cen_mtrxnew);
     int num_int =1 ;
 
-
+    double start = omp_get_wtime();
     while( compareArrays(cen_mtrx, cen_mtrxnew, NUM_CLUSTERS, num_dim) == 1 && num_int < MAX_ITERATIONS)
     {
         cal_dis (num_points, num_col, num_dim, mtrx,  cen_mtrx );
@@ -221,7 +222,7 @@ int main(int argc, char *argv[]){
         num_int ++;
     }
 
-
+    printf("Time without openmp is : \t %f \n", omp_get_wtime()-start);
     fprintf(output_file, "POINT_NUM,ASSIGNED_CLUSTER,XCOORD,YCOORD,");
 
     for(int i=1; i<NUM_CLUSTERS+1; i++){
@@ -231,20 +232,17 @@ int main(int argc, char *argv[]){
     for(int i=1; i<num_points+1; i++){
         fprintf(output_file,"\n%d,", i);
         for(int j=0; j<num_col; j++){
-            fprintf(output_file, "%.3f,",mtrx[i][j]);
+            fprintf(output_file, "%.3f,",mtrx[i-1][j]);
         }
     }
-    printf("aa\n");
-    fflush(stdout);
 
-
-    /*for (int i=0; i<NUM_CLUSTERS; i++)
+    for (int i=0; i<NUM_CLUSTERS; i++)
     {
         for (int j=0; j<num_dim; j++)
         {printf("%.3f\t",cen_mtrxnew[i][j]);}
         printf("\n");
     }
-    */
+
 
     //TODO:  (1)close file handle (2)free pointer
 
