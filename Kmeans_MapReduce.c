@@ -4,29 +4,11 @@
 #include <time.h>
 #include <string.h>
 #include <omp.h>
+#include "util.h"
 
-int NUM_THREADS = 2;
 int NUM_CLUSTERS = 6;
 int MAX_ITERATIONS = 100;
-
-void read_data(FILE *data_file, int num_points, int num_col, int  num_dim, float **mtrx){
-    for (int i=0; i<5; i++){           //skip the first 5 lines
-        fscanf(data_file, "%*[^\n]\n", NULL);
-    }
-
-    for (int i=0; i<num_points; i++){          //start reading data points to array. Point i stores in mtrx[i-1][];
-        fscanf(data_file,"%*f",	&mtrx[i][0]);   //mtrx[i-1][0] defines the cluster center it is assigned to; mtrx[i-1][1] is its first-dimension coordinate,and so forth.
-        mtrx[i][0]=0;					       //initialize the cluster center that each data point is assigned to as 0.
-        for (int k=0; k<NUM_CLUSTERS; k++){
-            mtrx[i][num_dim+k+1]=0;
-        }
-
-        for (int j=1;j<num_dim+1; j++){
-            fscanf(data_file,"%f", &mtrx[i][j]);
-        }
-        fscanf(data_file,"\n",NULL);
-    }
-}
+//TODO: (1) modularize (2) Consider plotting the result
 
 // random number generation fcuntion
 int* randsamp(int x, int min, int max)
@@ -59,16 +41,12 @@ void cal_centriods(int num_points,int num_dim,  float **mtrx, float **cen_mtrx){
       num_points_in_cluster = 0;
       x = 0;
       y = 0;
-      // omp parallel inner loop start
-      //int j= jj;
-      //#pragma omp parallel for reduction(+: num_points_in_cluster)
         for(int ii = 0; ii < num_points; ii++){
             if (mtrx[ii][0]== jj){
                 //mtrx[ii][num_dim+jj]
+                num_points_in_cluster++;
                 x += mtrx[ii][1];
                 y += mtrx[ii][2];
-                // critical atomic part
-                num_points_in_cluster++;
             }
             cen_mtrx[jj-1][0] = x/num_points_in_cluster;
             cen_mtrx[jj-1][1] = y/num_points_in_cluster;
@@ -89,21 +67,38 @@ int compareArrays(float **cen_mtrx, float **cen_mtrxnew, int row, int column) {
     return 0;
 }
 
+/*
+ node number   o column
+ cents index  x       y      distance to 1 distance to 2 distance to 3...  distance to NUM_CLUSTERS
+ 0            0 (original)   read   read        calulate     calulate    calulate     ...        calulate
+ 1
+ 2
+ 3
+ 4
+ .
+ .
+ .
+ num_points-1
+ */
 // this fucntion calcualte the distance of all nodes to all MAX_CLUSTER cluster centriods and store them in the mtrx
 // after the calculation, the mtrx is updated with each row's last MAX_CLUSTER columns are the distance to the centriods
 // for node number < number of points keep calculating
 // a is the centriods one dimentional matrix
-// CHANGED added the parallel seciton
+
 void cal_dis (int num_points, int num_col, int num_dim, float **mtrx,  float **cen_mtrx ){
     // assign the new centriods matrix
-    int ii, jj;
-    omp_set_num_threads(NUM_THREADS);
-    #pragma omp parallel for collapse(2) default(shared) private(jj)
-    for (ii = 0; ii< num_points; ii++){
-        for (jj =0; jj<NUM_CLUSTERS; jj++){
+    for (int ii = 0; ii< num_points; ii++){
+        for (int jj =0; jj<NUM_CLUSTERS; jj++){
+            // (mtrx[ii][1]-mtrx[k][1])^2 +(mtrx[ii][2]-mtrx[k][2])^2
             float xdiff = mtrx[ii][1]-cen_mtrx[jj][0];
             float ydiff = mtrx[ii][2]-cen_mtrx[jj][1];
             mtrx[ii][jj+num_dim+1] = sqrt(xdiff*xdiff + ydiff*ydiff);
+            /*IDEA:combine the assign_cen to here
+              if (mtrx[ii][jj+num_dim+1] < temp){
+                mtrx[ii][0] = jj+1;
+              }
+            }
+            */
         }
     }
 }
@@ -155,6 +150,16 @@ int main(int argc, char *argv[]){
     }
 
     read_data(data_file, num_points, num_col, num_dim, mtrx);
+
+    FILE *gnuplot = popen("gnuplot", "w");
+    fprintf(gnuplot, "plot '-'\n");
+    for (int i = 0; i < num_points; i++){
+      fprintf(gnuplot, "%g %g\n", mtrx[i][1], mtrx[i][2]);
+      fprintf(gnuplot, "e\n");
+      fflush(gnuplot);
+    }
+
+
     // * b is the array that store the 6 initial pointers
     int *b = randsamp (NUM_CLUSTERS, 0, num_points-1);
 
@@ -208,7 +213,7 @@ int main(int argc, char *argv[]){
         num_int ++;
     }
 
-    printf("Time w/ openmp is : \t %f \n", omp_get_wtime()-start);
+    printf("Time without openmp is : \t %f \n", omp_get_wtime()-start);
     fprintf(output_file, "POINT_NUM,ASSIGNED_CLUSTER,XCOORD,YCOORD,");
 
     for(int i=1; i<NUM_CLUSTERS+1; i++){
