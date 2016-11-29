@@ -15,8 +15,6 @@ int main(int argc, char *argv[]){
     strcpy(output_file_name, argv[1]);
     strcat(output_file_name, "D_");
     strcat(output_file_name, argv[2]);
-    strcat(output_file_name, "_");
-    strcat(output_file_name, argv[3]);
     strcat(output_file_name, ".txt");
     FILE *output_file = fopen(output_file_name,"w");
 
